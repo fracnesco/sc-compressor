@@ -1,0 +1,37 @@
+TITLE:: CompressorCurveView
+summary:: the transfer curve, and where the signal is on it
+categories:: Libraries>Compressor
+related:: Classes/Compressor, Classes/CompressorPanel, Classes/CompressorHistoryView
+
+DESCRIPTION::
+Input level along the bottom, output level up the side, both in dB down to -60.
+The dashed diagonal is what leaves as it came in; the curve is what the computer
+makes of it - bent over at the threshold in downward mode, lifted under it in
+upward mode - with the knee shaded so its width can be seen. A dot rides the
+curve at the level the detector is reading now, and a bar under it shows how far
+the gain is from 0 dB at this moment.
+
+definitionList::
+## drag || the threshold, left and right; shift for whole dB
+## cmd + drag up / down || the ratio - relative, so it never jumps
+## the wheel || the knee
+::
+
+CLASSMETHODS::
+
+METHOD:: new
+ARGUMENT:: comp
+ARGUMENT:: parent
+ARGUMENT:: bounds
+
+METHOD:: floorDb
+-60.
+
+METHOD:: ratioPerPixel
+How much of the ratio one pixel of a cmd drag is worth. 1.02.
+
+INSTANCEMETHODS::
+
+METHOD:: comp
+METHOD:: view
+METHOD:: refresh

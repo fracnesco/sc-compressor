@@ -1,0 +1,24 @@
+TITLE:: CompressorMeterView
+summary:: input, output and the gain change, as bars
+categories:: Libraries>Compressor
+related:: Classes/Compressor, Classes/CompressorPanel
+
+DESCRIPTION::
+Three bars: input and output in dB down to -60, and the gain change hanging
+from the top, up or down alike, on a scale that grows to fit. Each has a hold
+mark that falls back on its own; click to drop them. Red above 0 dB.
+
+CLASSMETHODS::
+
+METHOD:: new
+ARGUMENT:: comp
+ARGUMENT:: parent
+ARGUMENT:: width
+
+METHOD:: floorDb
+
+INSTANCEMETHODS::
+
+METHOD:: comp
+METHOD:: view
+METHOD:: refresh

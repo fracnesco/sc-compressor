@@ -1,0 +1,58 @@
+TITLE:: CompressorPanel
+summary:: a compressor's controls as one view
+categories:: Libraries>Compressor
+related:: Classes/Compressor, Classes/CompressorGUI, Classes/CompressorCurveView, Classes/CompressorHistoryView, Classes/CompressorMeterView, Classes/ParaEQPanel
+
+DESCRIPTION::
+What every window that shows a compressor is built from: its own window, the
+master chain in ServerView.
+
+code::
+ [x] comp on  preset [glue v] [name  ][save][delete] [copy][paste]   mode [down v] detector [rms v]
+ +-----------------+ +-------------------------------+ +----+
+ | transfer curve  | | in / out / gain, 8 seconds    | |bars|
+ +-----------------+ +-------------------------------+ +----+
+  thresh  ratio  knee  attack release  look  range  mix  gain [x] auto  link
+ sidechain [input v] bus [ 0 ][name v] [audition]         [x] sc eq [show eq]
+ (the sidechain eq's panel, folded away until asked for)
+::
+
+The boxes under the knobs read in the units the reader thinks in -
+milliseconds for the times, percent for mix and link. With BusManager installed
+the sidechain row grows a dropdown of bus names.
+
+code::
+panel = CompressorPanel(comp);
+window.layout = VLayout(panel.view, hints.view);
+panel.hints = hints;
+panel.running = true;         // meters, and the sidechain eq's analysis when shown
+panel.remove;                 // in window.onClose
+::
+
+CLASSMETHODS::
+
+METHOD:: new
+ARGUMENT:: comp
+ARGUMENT:: parent
+
+INSTANCEMETHODS::
+
+METHOD:: comp
+The compressor shown; can be pointed at another.
+
+METHOD:: view
+METHOD:: curveView
+METHOD:: historyView
+METHOD:: meterView
+METHOD:: eqPanel
+The sidechain eq's link::Classes/ParaEQPanel::.
+
+METHOD:: showEq
+Unfold or fold the sidechain eq.
+
+METHOD:: running
+Turns the compressor's meter on and off with the panel.
+
+METHOD:: hints
+METHOD:: refresh
+METHOD:: remove

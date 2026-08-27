@@ -1,0 +1,34 @@
+TITLE:: CompressorHistoryView
+summary:: the last few seconds of level and gain change
+categories:: Libraries>Compressor
+related:: Classes/Compressor, Classes/CompressorPanel, Classes/CompressorCurveView
+
+DESCRIPTION::
+The input filled and dim, the output as a line over it, and the gain change
+hanging from the top on a scale of its own that grows to fit the most it has
+done - what a compressor's display has looked like since the hardware ones, and
+still the quickest way to see whether the attack is catching the transients. It
+listens to the compressor's code::\levels:: and keeps a ring of them. Click to
+clear.
+
+CLASSMETHODS::
+
+METHOD:: new
+ARGUMENT:: comp
+ARGUMENT:: parent
+ARGUMENT:: bounds
+
+METHOD:: seconds
+How long the ring is. 8.
+
+METHOD:: floorDb
+METHOD:: grScaleMin
+The gain change axis never shows less than this. 6.
+
+INSTANCEMETHODS::
+
+METHOD:: comp
+METHOD:: view
+METHOD:: refresh
+METHOD:: remove
+Stops listening.

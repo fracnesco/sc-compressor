@@ -1,0 +1,11 @@
+(
+	name: "Compressor",
+	summary: "a feed forward compressor at audio rate - downward or upward, with a sidechain and an eq on it - as a UGen and as an object, with a window",
+	version: "0.1.0",
+	author: "Francesco Corvi",
+	url: "https://github.com/fracnesco/sc-compressor.git",
+	license: "MIT",
+	copyright: "Copyright (c) 2026 Francesco Corvi",
+	schelp: "HelpSource",
+	dependencies: ["https://github.com/fracnesco/sc-eq.git"]
+)

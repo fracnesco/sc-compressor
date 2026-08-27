@@ -1,0 +1,276 @@
+TITLE:: Compressor
+summary:: a feed forward compressor at audio rate - downward or upward, with a sidechain and an eq on it
+categories:: Libraries>Compressor
+related:: Classes/FxUnit, Classes/ParaEQ, Classes/FxChain, Classes/CompressorGUI, Classes/CompressorPanel, Classes/Compander
+
+DESCRIPTION::
+A dynamics processor with the shape of a modern plugin compressor - threshold,
+ratio, soft knee, attack, release, lookahead, range, mix, makeup - and two
+things a plugin usually keeps for a bigger brother: an strong::upward:: mode
+that lifts what falls under the threshold, and a strong::sidechain:: that
+listens through a five band link::Classes/ParaEQ:: of its own. Everything is
+audio rate: the gain is a signal, computed sample by sample; nothing here is
+link::Classes/Compander::.
+
+The DSP is one pseudo-UGen, link::#*ar::, so it runs wherever a UGen does; and
+an instance of this class drives it wherever it runs - see link::Classes/FxUnit::
+for the three ways.
+
+code::
+s.boot;
+Ndef(\bass, { var sig = LFSaw.ar([55, 55.3]) * 0.2; Compressor.ar(sig, \comp) }).play;
+
+c = Compressor(Ndef(\bass), \comp);
+c.gui;
+c.threshold = -24; c.ratio = 4; c.attack = 0.005; c.release = 0.12;
+c.preset = \glue;
+::
+
+subsection:: How the gain is worked out
+
+definitionList::
+## detector || the sidechain, or the input, through the eq; then either its absolute value or a 5 ms rms; the channels linked towards their loudest by link::#-link::
+## computer || the level in dB against link::#-threshold::, through a soft link::#-knee::, at link::#-ratio::; never further than link::#-range::. Downward mode squashes what goes over the threshold; upward mode mirrors this under it, and code::range:: is what keeps silence from being lifted
+## ballistics || the gain in dB, smoothed: link::#-attack:: seconds when it moves away from 0 dB, link::#-release:: coming back - as time constants, so 10 ms means what it means on a desk
+## lookahead || the signal is held back by up to 20 ms so the gain gets there first
+## output || gain plus makeup, mixed with the dry signal by link::#-mix::
+::
+
+link::#*staticGain:: is the computer in numbers, so the window's curve is the
+curve the server runs. That is the one thing this class has to get right:
+change link::#*ar:: and link::#*staticGain:: together.
+
+subsection:: The sidechain
+
+link::#*ar:: takes a signal the detector can listen to instead of the input; the
+object says which with link::#-sidechain::. A node of its own reads an external
+bus with link::Classes/InFeedback::, so a bus written later in the tree than the
+compressor still arrives - a block late, which a sidechain does not mind. Either
+way the detector listens through link::#-eq::, a ParaEQ that shapes only what
+the detector hears, and link::#-audition:: plays that instead of the output so
+the eq can be aimed.
+
+CLASSMETHODS::
+
+METHOD:: ar
+The compressor, as a UGen.
+
+ARGUMENT:: in
+The signal, any number of channels.
+
+ARGUMENT:: name
+The control the settings arrive on - fourteen numbers, see link::#-controls:: -
+and the prefix of the controls around it: code::On:: (a crossfade to dry),
+code::Eq:: and code::EqOn:: (the sidechain eq), code::Id:: and code::Meter::
+(the replies a window reads).
+
+ARGUMENT:: sidechain
+A signal the detector can listen to instead of the input, or nil.
+
+ARGUMENT:: bypass
+code::false:: leaves the code::On:: control out.
+
+METHOD:: new
+Drive a control on a node - link::Classes/FxUnit#*new::.
+
+METHOD:: onBus
+A node of its own, in place on a bus - link::Classes/FxUnit#*onBus::.
+
+METHOD:: staticGain
+The gain the computer applies to a level, in dB, before the ballistics: negative
+in downward mode, positive in upward.
+
+ARGUMENT:: inDb
+ARGUMENT:: threshold
+ARGUMENT:: ratio
+ARGUMENT:: knee
+ARGUMENT:: mode
+code::\down:: or code::\up::.
+ARGUMENT:: range
+
+METHOD:: modes
+code::[\down, \up]::.
+
+METHOD:: detectors
+code::[\peak, \rms]::.
+
+METHOD:: paramNames
+METHOD:: specs
+The settings a preset holds, and a link::Classes/ControlSpec:: for each numeric one.
+
+METHOD:: defaultControls
+METHOD:: defName
+METHOD:: synthDef
+The in place synth for a channel count, with a code::scBus:: for the external
+sidechain.
+
+METHOD:: meterRate
+Replies a second while a window is open. 25.
+
+METHOD:: maxLookahead
+What the delay line is sized for. 0.02.
+
+METHOD:: rmsWindow
+The rms detector's window. 0.005.
+
+METHOD:: presetNames
+code::\default::, code::\vocal::, code::'drum bus'::, code::\glue::,
+code::\brickwall::, code::\pump::, code::'sidechain duck'::, code::'upward
+lift'::, code::\parallel::, then yours.
+
+METHOD:: presets
+METHOD:: userPresets
+METHOD:: presetSettings
+METHOD:: isUserPreset
+METHOD:: addPreset
+METHOD:: removePreset
+METHOD:: clearUserPresets
+METHOD:: presetFile
+METHOD:: presetStore
+The presets - see link::Classes/FxPresetStore::. Yours live in
+code::compressor-presets.scd:: in the support folder.
+
+METHOD:: clipboard
+METHOD:: hasClipboard
+
+INSTANCEMETHODS::
+
+METHOD:: threshold
+In dB, -60 .. 0.
+
+METHOD:: ratio
+1 .. 20.
+
+METHOD:: knee
+How many dB around the threshold the curve bends over. 0 .. 24.
+
+METHOD:: attack
+METHOD:: release
+In seconds, as time constants.
+
+METHOD:: lookahead
+In seconds, up to link::#*maxLookahead::. Adds that much latency.
+
+METHOD:: range
+The most the gain is ever moved, in dB.
+
+METHOD:: mix
+How much of the compressed signal goes out, 0 .. 1.
+
+METHOD:: gain
+Makeup, in dB.
+
+METHOD:: autoGain
+Adds back half of the gain change the curve makes 20 dB past the threshold -
+above it downward, below it upward. A guess a fader can finish.
+
+METHOD:: autoGainDb
+METHOD:: makeup
+What auto gain adds, and the makeup the node is given.
+
+METHOD:: mode
+code::\down:: or code::\up::.
+
+METHOD:: detector
+code::\peak:: or code::\rms::.
+
+METHOD:: link
+How far the channels share one gain: 1 follows the loudest, 0 lets each go its
+own way.
+
+METHOD:: sidechain
+What the detector listens to instead of the input: a bus index, a
+link::Classes/Bus::, a BusManager name - followed when the bus behind it moves
+- or nil for the input again. Driving a graph, code::true:: switches to the
+signal handed to link::#*ar::.
+
+METHOD:: external
+Whether it is listening to that.
+
+METHOD:: sidechainName
+METHOD:: sidechainLabel
+
+METHOD:: eq
+The sidechain link::Classes/ParaEQ::. Its bands and its own code::enabled::
+travel through this compressor's node.
+
+METHOD:: audition
+Hear what the detector hears instead of the output. Never saved.
+
+METHOD:: set
+METHOD:: get
+A setting by name.
+
+METHOD:: staticGain
+The curve with this compressor's settings.
+
+METHOD:: meter
+Whether the node reports levels. A window turns it on while open.
+
+METHOD:: inLevel
+METHOD:: outLevel
+METHOD:: detLevel
+Amplitudes from the last reply.
+
+METHOD:: reduction
+METHOD:: reductionMin
+METHOD:: reductionMax
+The gain change over the last reply, in dB - the most of it in the current mode.
+
+METHOD:: isAlive
+Whether replies are arriving.
+
+METHOD:: preset
+METHOD:: presetName
+METHOD:: saveAsPreset
+METHOD:: copySettings
+METHOD:: pasteSettings
+METHOD:: copyFrom
+Presets and the clipboard, the way link::Classes/ParaEQ:: has them. Where the
+sidechain comes from is not part of a preset.
+
+METHOD:: settings
+METHOD:: asDict
+METHOD:: fromDict
+code::(enabled:, settings:)::, the settings holding every parameter and the
+sidechain eq as code::eq: (enabled:, bands:)::.
+
+METHOD:: controls
+The fourteen numbers the node is given: threshold, ratio, knee, attack, release,
+lookahead, range, makeup, mode, audition, detector, external, link.
+
+METHOD:: id
+The reply id, one per instance.
+
+EXAMPLES::
+
+code::
+s.boot;
+~kick = Bus.audio(s, 2);
+Ndef(\kick, {
+	var env = EnvGen.ar(Env.perc(0.001, 0.25), Impulse.ar(2));
+	var sig = SinOsc.ar(XLine.ar(180, 45, 0.08)) * env * 0.5;
+	Out.ar(~kick, sig ! 2);
+	sig ! 2
+}).play;
+Ndef(\bass, {
+	var sig = RLPF.ar(LFSaw.ar([55, 55.3]) * 0.2, 600, 0.3);
+	Compressor.ar(sig, \comp, In.ar(~kick, 2))
+}).play;
+
+c = Compressor(Ndef(\bass), \comp);
+c.gui;
+c.preset = 'sidechain duck';
+c.sidechain = true;              // the kick ducks the bass
+c.eq.enabled = true;
+c.eq.setBand(4, 3000, -24, 0.7); // the detector stops hearing the top
+c.audition = true;               // what the detector hears
+c.audition = false;
+
+c.sidechain = nil;
+c.mode = \up; c.threshold = -30; c.range = 12;   // the quiet tail comes up
+c.mode = \down; c.range = 60;
+
+c.free;
+Ndef(\bass).clear; Ndef(\kick).clear; ~kick.free;
+::

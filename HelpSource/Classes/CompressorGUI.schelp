@@ -1,0 +1,31 @@
+TITLE:: CompressorGUI
+summary:: one compressor in a window of its own
+categories:: Libraries>Compressor
+related:: Classes/Compressor, Classes/CompressorPanel
+
+DESCRIPTION::
+A link::Classes/CompressorPanel::, a status line saying where the compressor is
+running and what it listens to, and a link::Classes/FxHintBar:: under it. What
+code::comp.gui:: opens.
+
+code::
+c = Compressor.onBus(0, 2);
+c.gui;
+c.guiObj.close;
+::
+
+CLASSMETHODS::
+
+METHOD:: new
+ARGUMENT:: comp
+ARGUMENT:: x
+ARGUMENT:: y
+
+INSTANCEMETHODS::
+
+METHOD:: comp
+METHOD:: window
+METHOD:: panel
+METHOD:: hints
+METHOD:: front
+METHOD:: close
