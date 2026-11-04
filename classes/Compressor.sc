@@ -98,10 +98,10 @@ Compressor : FxUnit {
 	// --------------------------------------------------------------- the DSP
 
 	// The compressor, as a UGen. `name` is the control the settings arrive
-	// on - fourteen numbers, see controls - and around it: `name`Eq and
-	// `name`EqOn for the sidechain eq, `name`On to crossfade the whole
-	// thing to dry, `name`Id and `name`Meter for the replies a window
-	// reads. `sidechain` is a signal the detector can listen to instead
+	// on - fourteen numbers, see controls - and around it: `name`Eq,
+	// `name`EqCut, `name`EqSlope and `name`EqOn for the sidechain eq, its two
+	// cuts, their slopes and its switch, `name`On to crossfade the whole thing to dry, `name`Id
+	// and `name`Meter for the replies a window reads. `sidechain` is a signal the detector can listen to instead
 	// of the input; the object decides which with `external`.
 	//
 	//   Compressor.ar(sig, \comp);
@@ -416,14 +416,20 @@ Compressor : FxUnit {
 		if (synth.notNil and: { eq.notNil }) { this.prPushEq };
 	}
 
-	// the sidechain eq travels through this node, not through one of its own
+	// The sidechain eq travels through this node, not through one of its
+	// own: its bands, its two cuts, their slopes and whether it is in, all on this
+	// node's controls.
 	prPushEq {
-		var eqName, onName;
+		var eqName, cutName, slopeName, onName;
 		if (eq.isNil) { ^this };
 		eqName = eq.controlName;
+		cutName = eq.cutName;
+		slopeName = eq.slopeName;
 		onName = eq.onName;
-		synth !? { |sy| sy.set(eqName, eq.controls, onName, eq.enabled.binaryValue) };
-		target !? { |t| t.set(eqName, eq.controls, onName, eq.enabled.binaryValue) };
+		synth !? { |sy| sy.set(eqName, eq.controls, cutName, eq.cutControls,
+			slopeName, eq.slopeControls, onName, eq.enabled.binaryValue) };
+		target !? { |t| t.set(eqName, eq.controls, cutName, eq.cutControls,
+			slopeName, eq.slopeControls, onName, eq.enabled.binaryValue) };
 	}
 
 	prPushMeta {

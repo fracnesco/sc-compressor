@@ -61,8 +61,8 @@ The signal, any number of channels.
 ARGUMENT:: name
 The control the settings arrive on - fourteen numbers, see link::#-controls:: -
 and the prefix of the controls around it: code::On:: (a crossfade to dry),
-code::Eq:: and code::EqOn:: (the sidechain eq), code::Id:: and code::Meter::
-(the replies a window reads).
+code::Eq::, code::EqCut:: and code::EqOn:: (the sidechain eq's bands, its two
+cuts and its switch), code::Id:: and code::Meter:: (the replies a window reads).
 
 ARGUMENT:: sidechain
 A signal the detector can listen to instead of the input, or nil.
@@ -233,7 +233,7 @@ METHOD:: settings
 METHOD:: asDict
 METHOD:: fromDict
 code::(enabled:, settings:)::, the settings holding every parameter and the
-sidechain eq as code::eq: (enabled:, bands:)::.
+sidechain eq as code::eq: (enabled:, bands:, cuts:)::.
 
 METHOD:: controls
 The fourteen numbers the node is given: threshold, ratio, knee, attack, release,

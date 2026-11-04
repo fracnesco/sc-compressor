@@ -97,9 +97,9 @@ a signal, computed sample by sample from the same arithmetic the window draws.
 ## In a graph of your own
 
 `Compressor.ar(in, name, sidechain)` reads its settings off a control called
-`name` and, around it, `name` + `On` (a crossfade to dry), `name` + `Eq` and
-`EqOn` (the sidechain eq's bands and switch), `name` + `Id` and `Meter` (for the
-replies a window reads). The third argument is a signal the detector can listen
+`name` and, around it, `name` + `On` (a crossfade to dry), `name` + `Eq`,
+`EqCut` and `EqOn` (the sidechain eq's bands, its two cuts and its switch),
+`name` + `Id` and `Meter` (for the replies a window reads). The third argument is a signal the detector can listen
 to instead of the input:
 
 ```supercollider
@@ -132,13 +132,16 @@ not mind.
 
 ## The sidechain eq
 
-Every compressor carries a five band `ParaEQ` in front of its detector. The
-signal itself is untouched; only what the detector hears is shaped, so a kick
-can duck a bass without the hi-hat doing the ducking:
+Every compressor carries a `ParaEQ` in front of its detector — five bands and
+the two cuts, like any other. The signal itself is untouched; only what the
+detector hears is shaped, so a kick can duck a bass without the hi-hat doing the
+ducking:
 
 ```supercollider
 c.eq.enabled = true;
 c.eq.setBand(4, 3000, -24, 0.7);     // the detector stops hearing the top
+c.eq.highPassOn = true;              // and nothing under 80 Hz sets it off
+c.eq.highPassFreq = 80;
 c.eq.preset = 'rumble cut';
 c.audition = true;                   // hear what the detector hears, to aim it
 c.audition = false;
