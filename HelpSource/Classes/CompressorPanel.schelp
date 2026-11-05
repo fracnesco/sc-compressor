@@ -5,7 +5,7 @@ related:: Classes/Compressor, Classes/CompressorGUI, Classes/CompressorCurveView
 
 DESCRIPTION::
 What every window that shows a compressor is built from: its own window, the
-master chain in ServerView.
+master chain in ServerPanel.
 
 code::
  [x] comp on  preset [glue v] [name  ][save][delete] [copy][paste]   mode [down v] detector [rms v]

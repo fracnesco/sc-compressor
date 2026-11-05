@@ -12,7 +12,7 @@
 //   (the sidechain eq's panel, folded away until asked for)
 //
 // The panel is what every window that shows a compressor is built from:
-// its own window, the master chain in ServerView. It follows one
+// its own window, the master chain in ServerPanel. It follows one
 // Compressor and can be pointed at another with `panel.comp = other`.
 //
 //   panel = CompressorPanel(comp);
