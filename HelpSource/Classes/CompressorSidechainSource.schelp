@@ -1,0 +1,35 @@
+TITLE:: CompressorSidechainSource
+summary:: where the sidechain page's spectrum reads
+categories:: Libraries>Compressor
+related:: Classes/CompressorPanel, Classes/ParaEQSpectrum
+
+DESCRIPTION::
+What a ParaEQSpectrum asks an eq, answered for what a compressor's detector
+listens to, before its eq: the input - read just before the compressor's own
+node, or at the end of a driven proxy's group (what leaves it: there is no way
+in) - or the sidechain bus, read at the tail of the default group. A
+SuperDirtGUI orbit's busses are written inside SuperDirt's group, which sits
+before that tail. The graph's own sidechain (code::sidechain = true::) has no bus
+to read, so there is no picture rather than a wrong one.
+
+code::
+c = Compressor.new;
+t = CompressorSidechainSource(c);
+t.analysisAvailable;      // false: no node, no bus
+::
+
+CLASSMETHODS::
+
+METHOD:: new
+ARGUMENT:: comp
+
+INSTANCEMETHODS::
+
+METHOD:: comp
+METHOD:: server
+METHOD:: enabled
+METHOD:: analysisPlacement
+RETURNS:: [target, addAction], or nil
+METHOD:: analysisBusIndex
+METHOD:: analysisChannels
+METHOD:: analysisAvailable

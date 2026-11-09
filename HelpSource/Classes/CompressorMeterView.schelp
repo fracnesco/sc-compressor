@@ -1,24 +1,25 @@
 TITLE:: CompressorMeterView
-summary:: input, output and the gain change, as bars
+summary:: in, the gain change and out, as bars
 categories:: Libraries>Compressor
 related:: Classes/Compressor, Classes/CompressorPanel
 
 DESCRIPTION::
-Three bars: input and output in dB down to -60, and the gain change hanging
-from the top, up or down alike, on a scale that grows to fit. Each has a hold
-mark that falls back on its own; click to drop them. Red above 0 dB.
+FxMeter (from ParaEQ) with its gain bar: in, the gain change, out, on the dB
+scale the history and the curve share. A cut hangs from 0 dB, a lift rises
+from the floor, in orchid; in and out are blue with clip lights. The held
+peaks are numbers over the bars (the gain to one decimal); a click drops them
+and the clip lights. Levels that stop coming fall to nothing rather than
+standing at the last reply.
 
 CLASSMETHODS::
 
 METHOD:: new
 ARGUMENT:: comp
-ARGUMENT:: parent
-ARGUMENT:: width
-
-METHOD:: floorDb
 
 INSTANCEMETHODS::
 
 METHOD:: comp
-METHOD:: view
-METHOD:: refresh
+METHOD:: isLive
+METHOD:: inLevel
+The compressor's input peak while replies come, else 0.
+METHOD:: outLevel

@@ -1,34 +1,75 @@
 TITLE:: CompressorHistoryView
-summary:: the last few seconds of level and gain change
+summary:: the last eight seconds of level and gain change
 categories:: Libraries>Compressor
 related:: Classes/Compressor, Classes/CompressorPanel, Classes/CompressorCurveView
 
 DESCRIPTION::
-The input filled and dim, the output as a line over it, and the gain change
-hanging from the top on a scale of its own that grows to fit the most it has
-done - what a compressor's display has looked like since the hardware ones, and
-still the quickest way to see whether the attack is catching the transients. It
-listens to the compressor's code::\levels:: and keeps a ring of them. Click to
-clear.
+One frame per meter reply, newest at the right, on FxMeter's dB ruler: the
+input filled, the output as a blue line, the gain change in orchid hanging from
+0 dB (in up mode, rising from the floor), and the threshold as an orchid line
+across it. Where the detector is over the line (under it, in up mode) the gap is
+tinted orchid, right above the cut it causes. The detector gets a line of its
+own when it is not simply the input: an external sidechain, the eq in, or the
+rms detector. Under 48 dB the range is a dashed floor.
+
+Before any reply has come it plays a test kick - every half second, -3 dBFS
+falling 30 dB in 120 ms onto -36 dBFS - through the current settings, worked
+out in numbers with the same gain computer and the same attack and release as
+link::Classes/Compressor#*ar:: (link::#*ghostFor::), faint and labelled. When
+replies stop it keeps what it had and says strong::no signal::; off, it says
+the gain is what it would do.
+
+table::
+## drag the line || the threshold (shift: fine)
+## double click it || -20 dB
+## the wheel on it || 0.5 dB a step
+## double click elsewhere || clear it - the test kick comes back
+## listens to ... in the caption || the source menu
+::
 
 CLASSMETHODS::
 
 METHOD:: new
 ARGUMENT:: comp
 ARGUMENT:: parent
-ARGUMENT:: bounds
 
 METHOD:: seconds
-How long the ring is. 8.
+How much it shows, 8.
 
 METHOD:: floorDb
-METHOD:: grScaleMin
-The gain change axis never shows less than this. 6.
+
+METHOD:: ghostStep
+The test kick's drawing step, in seconds.
+
+METHOD:: ghostFor
+One second of the test kick through a compressor's settings.
+ARGUMENT:: comp
+RETURNS:: [detector, input, output, gain], each an Array of dB, one every code::ghostStep::.
+
+code::
+c = Compressor.new; c.preset = \pump;
+g = CompressorHistoryView.ghostFor(c);
+g[3].minItem;     // the most it cuts the kick, in dB
+::
 
 INSTANCEMETHODS::
 
 METHOD:: comp
 METHOD:: view
+METHOD:: hints
+METHOD:: hoverAction
+Called with the view and code::\threshold::, code::\source:: or nil.
+METHOD:: sourceAction
+Called when the caption's listens to is clicked.
+METHOD:: hot
+METHOD:: levelsArrived
+One reply into the ring; the panel calls it.
+METHOD:: filled
+How many frames it holds.
+METHOD:: isLive
+METHOD:: clear
+METHOD:: hint
+ARGUMENT:: x
+ARGUMENT:: y
 METHOD:: refresh
 METHOD:: remove
-Stops listening.

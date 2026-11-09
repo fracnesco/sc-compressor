@@ -1,37 +1,80 @@
 TITLE:: CompressorCurveView
-summary:: the transfer curve, and where the signal is on it
+summary:: the transfer curve, on the meters' dB scale
 categories:: Libraries>Compressor
 related:: Classes/Compressor, Classes/CompressorPanel, Classes/CompressorHistoryView
 
 DESCRIPTION::
-Input level along the bottom, output level up the side, both in dB down to -60.
-The dashed diagonal is what leaves as it came in; the curve is what the computer
-makes of it - bent over at the threshold in downward mode, lifted under it in
-upward mode - with the knee shaded so its width can be seen. A dot rides the
-curve at the level the detector is reading now, and a bar under it shows how far
-the gain is from 0 dB at this moment.
+Input level along, output level up, both from -60 to +6 dB on FxMeter's ruler
+(code::FxMeter.dbToY::), so its lines are the meters' lines and the history's.
+The diagonal is what leaves as it came in; the orchid curve is what the gain
+computer makes of it - link::Classes/Compressor#*staticGain::, the server's own
+arithmetic, makeup left out - with the knee shaded. The threshold is the
+horizontal orchid line through the bend, at the same height as in the history,
+and its value sits on a chip in the label column.
 
-definitionList::
-## drag || the threshold, left and right; shift for whole dB
-## cmd + drag up / down || the ratio - relative, so it never jumps
-## the wheel || the knee
+Live, a blue dot is where the detector is now and how far the gain is from 0 dB
+at this moment; the ring on the curve is where the gain is heading, so the dot
+trails it by the attack and the release. Over the curve the hero number is the
+most the gain moved in the last second. While the pointer is in the view,
+dashed lines fan out from the bend for 2, 4, 8 and 20:1.
+
+table::
+## drag the line || the threshold, up and down; shift: fine
+## double click it || -20 dB
+## the wheel on it || 0.5 dB a step; shift: 0.1
+## drag the slope past the bend || the ratio: it follows the pointer (shift: fine)
+## double click the slope || 4:1
+## cmd + drag anywhere || the ratio, up for more (alt or ctrl too)
+## a fan's 2 4 8 20 || that ratio, exactly
+## the wheel elsewhere || the knee
 ::
+
+The view keeps itself square-ish: its width follows its height (200 .. 350 px).
+It writes its own hints to a hint bar, since a bar's attach would take over the
+pointer it follows.
 
 CLASSMETHODS::
 
 METHOD:: new
 ARGUMENT:: comp
 ARGUMENT:: parent
-ARGUMENT:: bounds
 
 METHOD:: floorDb
--60.
+The bottom of the scale, -60.
 
 METHOD:: ratioPerPixel
-How much of the ratio one pixel of a cmd drag is worth. 1.02.
+How much a pixel of a ratio drag multiplies the ratio by, 1.02.
+
+METHOD:: fanRatios
+The ratios the fan shows.
+
+METHOD:: thresholdHint
+The hint for the threshold line, shared with the history.
+ARGUMENT:: comp
 
 INSTANCEMETHODS::
 
 METHOD:: comp
 METHOD:: view
+METHOD:: hints
+A hint bar to write to.
+
+METHOD:: hoverAction
+Called with the view and what is under the pointer - code::\threshold::,
+code::\ratio::, code::\fan::, code::\knee:: or nil - so a panel can light the knob's name.
+
+METHOD:: hot
+code::\threshold:: or code::\ratio:: thickens that handle (its knob is hovered).
+
+METHOD:: levelsArrived
+The panel calls it on every reply.
+
+METHOD:: heroGain
+The most gain change of the last second, in dB, signed.
+
+METHOD:: hint
+What is under a point of the view, for the hint bar.
+ARGUMENT:: x
+ARGUMENT:: y
+
 METHOD:: refresh

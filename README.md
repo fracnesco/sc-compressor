@@ -4,9 +4,10 @@
 and an eq on the sidechain — that runs anywhere a UGen does, driven by an object
 with a window.** A SuperCollider extension.
 
-Write `Compressor.ar` into a graph of your own and drive it from an object: the
-transfer curve with the signal riding on it, the last eight seconds of level and
-gain change, meters, a knob per parameter, presets, a clipboard. The same object
+Write `Compressor.ar` into a graph of your own and drive it from an object: a
+window with the last eight seconds of level and gain change beside the transfer
+curve, both on the meters' dB scale, the threshold one line you drag through
+them, a knob per parameter, presets, a clipboard. The same object
 can own a synth on a bus instead, or sit in the master chain.
 
 ```supercollider
@@ -148,7 +149,7 @@ c.audition = false;
 ```
 
 It is the same eq as everywhere else: the same presets, the same clipboard, the
-same panel — **show eq** on the sidechain row unfolds it.
+same curve and dots — the window's **sidechain** page shows it.
 
 ## Presets, and a clipboard
 
@@ -169,26 +170,68 @@ patch, not to the sound.
 
 ## The window
 
-`c.gui`, or the same panel inside the master chain.
+`c.gui`, or the same panel inside the master chain (`FxChain.master.gui`, the
+`fx` row of ServerPanel) and in a SuperDirtGUI insert.
 
 ```
- [x] comp on  preset [glue v] [name  ][save][delete] [copy][paste]     mode [down v] detector [rms v]
- +-----------------+ +-------------------------------+ +----+
- | transfer curve  | | in / out / gain, 8 seconds    | |bars|
- +-----------------+ +-------------------------------+ +----+
-  thresh  ratio  knee  attack release  look  range  mix  gain [x] auto  link
-  (o)     (o)    (o)   (o)    (o)      (o)   (o)    (o)  (o)            (o)
- sidechain [input v] bus [ 0 ][name v] [audition]           [x] sc eq [show eq]
- hover a control and this bar says what it does
+ (o) COMPRESSOR   < glue          v >  save  ...
+ +----------------------------------------+ +---------------------+ +----------+
+ | level · gain change    listens to input v| | curve · down  gain -4.0 dB| -3 -4.0 1 |
+ |  in filled, out a line, the gain change | |  0 -              .'    | |  #  #  # |
+ |  hanging from 0 dB, orchid over the line| |-22 ======*=========== | |  #  #  # |
+ |  ========= threshold ================== | |      /  the dot is the  | |  #     # |
+ |                                         | |    /    detector now    | |  #     # |
+ |  -6 s        -4 s        -2 s       now | |  -48  -24  -12 -6 0  in| | in gain out|
+ +----------------------------------------+ +---------------------+ +----------+
+ [dynamics][sidechain]
+ | curve                                  | | time                          | | output           |
+ | mode     threshold  ratio  knee  range | | detector  attack release lookahead| | makeup auto  mix |
+ | [down|up]  ((O))    ((O))   (o)   (o)  | | [peak|rms]  (O)    (O)     (o)  | |  (O)  [auto] (O) |
+ hover over a control and this bar says what it does                bus 0 · 2 ch · on
 ```
 
-- On the **curve**, drag for the threshold, cmd + drag for the ratio, the wheel
-  for the knee. The dot is where the detector is now; the bar under it is how far
-  the gain is from 0 dB at this moment.
-- The **history** is the input filled, the output as a line, and the gain change
-  hanging from the top on a scale that grows to fit. Click to clear.
-- The **bars** are input, output and gain change, with a hold mark that falls back.
-- The line along the bottom says what the pointer is on.
+Everything the compressor does to the level is orchid; everything that is sound
+is blue. The history, the curve and the meters share one dB scale, so a line on
+one is the same level on the others, and 6 dB of gain change is 6 dB everywhere.
+
+- The **history** is the last eight seconds: the input filled, the output as a
+  line, the gain change hanging from 0 dB (in up mode, rising from the floor),
+  and, tinted, the stretch where the detector is over the threshold - right
+  above the cut it causes. With the eq on, an external sidechain or the rms
+  detector, the detector has a line of its own. Before any sound has come back
+  it plays a test kick, every half second, through the current settings - the
+  same curve and the same attack and release - so you can see what the knobs do
+  with no server running. Double click away from the line to clear it.
+- The **curve** is input along and output up: what the server's gain computer
+  makes of a level, makeup left out. The dot is where the detector is now,
+  trailing the ring on the curve by the attack and the release. While the
+  pointer is in it, dashed lines show what 2, 4, 8 and 20:1 would do; click one.
+- The **threshold** is the orchid line through both. Drag it up and down in
+  either view (shift is fine), double click it for -20 dB, or use the wheel on it.
+  Drag the slope past the bend for the ratio - double click it for 4:1 - or
+  cmd + drag anywhere in the curve; the wheel elsewhere in the curve is the knee.
+- The **gain** number over the curve is the most the gain moved in the last
+  second; the meters are in, the gain change and out, with the peaks held - click
+  to drop them and the clip lights.
+- **threshold** and **ratio** are the big knobs. The threshold's ring is the
+  detector now: blue up to the knob's value, orchid past it, so you can see how
+  hard it is working without looking up. **knee** at the bottom reads hard.
+  Knobs work the same in every effect window: drag, shift for fine, the wheel,
+  double click for the default, click the value to type one, right click for a
+  menu (the ratio's has 2:1, 4:1, 8:1 and 20:1).
+- The **sidechain** page swaps the history for the sidechain eq, with the
+  spectrum of what the detector listens to behind it: **source** (the input, a
+  bus by BusManager name - followed when it moves - or by number, and in a graph
+  of your own the signal handed to `*ar`), **audition**, **link**, and the eq's
+  selected dot: its number on the card's title line, **flat**, **eq** in or out,
+  freq, gain, width (or a cut's res) and **slope** (a cut's in/out). The curve,
+  the meters and the output stay. The tab wears a dot while the detector hears
+  anything but its own plain input. The history's *listens to* is the same menu.
+- What does nothing now is dimmed: at 1:1 the threshold and the timing, link
+  with one channel, makeup and mix while you audition. Off, the panel dims but
+  stays editable; driving a graph, the window then shows what it *would* do.
+- The line along the bottom says what the pointer is on, and where the
+  compressor runs.
 
 ## Server restarts
 
@@ -201,8 +244,8 @@ the Ndef. The meter replies only flow while a window is open.
 | file | what it holds |
 |------|---------------|
 | [classes/Compressor.sc](classes/Compressor.sc) | the DSP as a UGen, the object, the static curve in numbers, presets, clipboard, sidechain, meters |
-| [classes/CompressorView.sc](classes/CompressorView.sc) | `CompressorCurveView`, `CompressorHistoryView`, `CompressorMeterView` |
-| [classes/CompressorGUI.sc](classes/CompressorGUI.sc) | `CompressorPanel`, the controls as one view, and `CompressorGUI`, the window |
+| [classes/CompressorView.sc](classes/CompressorView.sc) | the display: `CompressorHistoryView` (and its test kick), `CompressorCurveView`, `CompressorMeterView` (FxMeter with the gain bar), `CompressorSidechainSource` (where the sidechain page's spectrum reads) |
+| [classes/CompressorGUI.sc](classes/CompressorGUI.sc) | `CompressorPanel`, the controls as one view, and `CompressorGUI`, the window (ParaEQ's `FxDeviceGUI`) |
 | [HelpSource/Classes/](HelpSource/Classes/) | the help files, cmd/ctrl + d on a class name |
 | [examples/compressor-demo.scd](examples/compressor-demo.scd) | a walkthrough you can evaluate a block at a time |
 | [install.scd](install.scd) | symlinks ParaEQ and this repository into the extensions folder |

@@ -1,58 +1,129 @@
 TITLE:: CompressorPanel
 summary:: a compressor's controls as one view
 categories:: Libraries>Compressor
-related:: Classes/Compressor, Classes/CompressorGUI, Classes/CompressorCurveView, Classes/CompressorHistoryView, Classes/CompressorMeterView, Classes/ParaEQPanel
+related:: Classes/Compressor, Classes/CompressorGUI, Classes/CompressorCurveView, Classes/CompressorHistoryView, Classes/CompressorMeterView, Classes/ParaEQView
 
 DESCRIPTION::
-What every window that shows a compressor is built from: its own window, the
-master chain in ServerPanel.
+What every window that shows a compressor is built from: its own window
+(link::Classes/CompressorGUI::), the master chain (FxChainPanel, which
+ServerPanel opens), a SuperDirtGUI insert.
 
 code::
- [x] comp on  preset [glue v] [name  ][save][delete] [copy][paste]   mode [down v] detector [rms v]
- +-----------------+ +-------------------------------+ +----+
- | transfer curve  | | in / out / gain, 8 seconds    | |bars|
- +-----------------+ +-------------------------------+ +----+
-  thresh  ratio  knee  attack release  look  range  mix  gain [x] auto  link
- sidechain [input v] bus [ 0 ][name v] [audition]         [x] sc eq [show eq]
- (the sidechain eq's panel, folded away until asked for)
+ (o) COMPRESSOR   < glue          v >  save  ...
+ +-------------------------------------+ +------------------+ +----------+
+ | level · gain change listens to input v| | curve · down gain -4.0 dB| in gain out|
+ |  the last 8 s, the threshold a line  | |  the transfer curve,     | |  #  #  # |
+ |  through it and through the curve    | |  the dot the detector    | |  #  #  # |
+ +-------------------------------------+ +------------------+ +----------+
+ [dynamics][sidechain]
+ | curve: mode threshold ratio knee range | | time: detector attack release lookahead | | output: makeup auto mix |
 ::
 
-The boxes under the knobs read in the units the reader thinks in -
-milliseconds for the times, percent for mix and link. With BusManager installed
-the sidechain row grows a dropdown of bus names.
+The frame every effect window shares - the header (power, the name, presets,
+save, a menu with save as, delete, copy, paste and back to the defaults), the
+display with its meters at the right, titled cards, the knobs and their
+gestures, the output card last, the hint bar - and a compressor's face: the
+history (link::Classes/CompressorHistoryView::) and the transfer curve
+(link::Classes/CompressorCurveView::) on the meters' dB scale, with the
+threshold one orchid line through both. Orchid, code::FxPalette.gain::, is
+everything the compressor does to the level; blue is sound.
+
+Two pages. strong::dynamics:: holds the curve card (mode, threshold and ratio
+big, knee and range small - the four in orchid; the threshold's knob carries a
+ring of where the detector is now) and the time card (detector, attack,
+release, lookahead). strong::sidechain:: swaps the history for the sidechain eq
+(a link::Classes/ParaEQView:: with the spectrum of what the detector listens to
+behind it, see link::Classes/CompressorSidechainSource::) and the cards for
+what it listens to (source, audition, link) and the eq's selected dot (its
+number on the card's title line, flat, eq in/out, freq, gain, width or a cut's
+res, slope). The curve, the meters and the output card (makeup, auto, mix) stay
+on both. The sidechain tab wears a dot while the detector hears anything but
+its own plain input: another source, the eq in, link under 100 %, audition.
+
+What does nothing in the current settings is dimmed and its hint says why: at
+1:1 the threshold, knee, range, attack and release; link with one channel;
+makeup, auto and mix while auditioning; the eq's controls while it is out, the
+gain of a cut, the slope of a band. Off, every control is muted but stays
+editable.
 
 code::
-panel = CompressorPanel(comp);
-window.layout = VLayout(panel.view, hints.view);
-panel.hints = hints;
-panel.running = true;         // meters, and the sidechain eq's analysis when shown
-panel.remove;                 // in window.onClose
+c = Compressor.new;
+w = Window("a compressor", Rect(100, 100, 960, 520)).front;
+p = CompressorPanel(c, w);
+w.layout = VLayout(p.view);
+p.running = true;         // meters, and the sidechain's spectrum while its page shows
+p.page = 1;               // the sidechain page
+w.onClose = { p.remove };
 ::
 
 CLASSMETHODS::
 
 METHOD:: new
 ARGUMENT:: comp
+The link::Classes/Compressor:: to show, or nil for an empty panel.
 ARGUMENT:: parent
+A view to build in, or nil.
 
 INSTANCEMETHODS::
 
 METHOD:: comp
-The compressor shown; can be pointed at another.
+The compressor shown. Setting it re-points the header, both views, the meter,
+the sidechain eq and its spectrum and every control; nil empties the panel.
 
 METHOD:: view
-METHOD:: curveView
-METHOD:: historyView
-METHOD:: meterView
-METHOD:: eqPanel
-The sidechain eq's link::Classes/ParaEQPanel::.
+The panel's link::Classes/View::.
+
+METHOD:: page
+Which page shows: 0 dynamics, 1 sidechain.
 
 METHOD:: showEq
-Unfold or fold the sidechain eq.
+The sidechain page (true) or dynamics (false), as the old show eq button did.
+ARGUMENT:: bool
 
 METHOD:: running
-Turns the compressor's meter on and off with the panel.
+While true the compressor reports its levels (code::comp.meter::) and, on the
+sidechain page, the spectrum runs. A window sets it while the panel shows.
+
+METHOD:: header
+The panel's FxHeader.
+
+METHOD:: curveView
+The link::Classes/CompressorCurveView::.
+
+METHOD:: historyView
+The link::Classes/CompressorHistoryView::.
+
+METHOD:: meterView
+The link::Classes/CompressorMeterView::: an FxMeter with the gain bar.
+
+METHOD:: eqView
+The sidechain eq's link::Classes/ParaEQView::.
+
+METHOD:: spectrum
+The ParaEQSpectrum behind the sidechain eq.
+
+METHOD:: tabs
+The page switch (an FxSwitch).
+
+METHOD:: selected
+Which dot of the sidechain eq the card works on, 0 .. 6 (the five bands, then
+the low and the high cut). The eq view owns it: set code::p.eqView.selected::.
+
+METHOD:: knobs
+The parameter knobs by name (code::\threshold::, code::\ratio:: ...).
+
+METHOD:: widgets
+Every control the panel draws, for a check or a picture.
 
 METHOD:: hints
+An FxHintBar the panel labels its controls in; the two views write to it themselves.
+
 METHOD:: refresh
+Redraw from the compressor.
+
+METHOD:: isClosed
+Whether the view has gone.
+
 METHOD:: remove
+Stops listening, frees the spectrum's analyser and turns the meter off. Call it
+in the window's onClose.

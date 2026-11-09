@@ -1,17 +1,20 @@
 TITLE:: CompressorGUI
-summary:: one compressor in a window of its own
+summary:: a compressor in a window of its own
 categories:: Libraries>Compressor
 related:: Classes/Compressor, Classes/CompressorPanel
 
 DESCRIPTION::
-A link::Classes/CompressorPanel::, a status line saying where the compressor is
-running and what it listens to, and a link::Classes/FxHintBar:: under it. What
-code::comp.gui:: opens.
+The link::Classes/CompressorPanel:: in the window every effect has (FxDeviceGUI,
+from ParaEQ): 960 x 560, the hint at the left of one line along the bottom and
+where the compressor runs at its right - code::bus 0 · 2 ch · on::, code::in master_localhost · on::,
+code::driving orbit 1, before its fader · on::. What code::comp.gui:: opens.
+Closing it stops the meters and the spectrum; the compressor itself is untouched.
 
 code::
-c = Compressor.onBus(0, 2);
-c.gui;
-c.guiObj.close;
+c = Compressor.new;
+g = c.gui;          // or CompressorGUI(c)
+g.panel.page = 1;
+g.close;
 ::
 
 CLASSMETHODS::
@@ -24,8 +27,14 @@ ARGUMENT:: y
 INSTANCEMETHODS::
 
 METHOD:: comp
+The compressor shown.
+
 METHOD:: window
 METHOD:: panel
+The link::Classes/CompressorPanel::.
+
 METHOD:: hints
+The window's FxHintBar.
+
 METHOD:: front
 METHOD:: close

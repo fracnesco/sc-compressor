@@ -88,6 +88,15 @@ ARGUMENT:: mode
 code::\down:: or code::\up::.
 ARGUMENT:: range
 
+METHOD:: title
+What its window is called, code::"compressor"::.
+
+METHOD:: windowSize
+Its window's size, 960 x 560.
+
+METHOD:: identityColour
+Its colour in every window: orchid, code::FxPalette.gain::, the gain change.
+
 METHOD:: modes
 code::[\down, \up]::.
 
