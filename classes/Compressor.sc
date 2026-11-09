@@ -200,6 +200,12 @@ Compressor : FxUnit {
 	*guiClass { ^CompressorGUI }
 	*panelClass { ^CompressorPanel }
 
+	// the window's words (sc-fx-ui): its name, its size, and its colour -
+	// orchid, the gain change, FxPalette.gain
+	*title { ^"compressor" }
+	*windowSize { ^Point(960, 560) }
+	*identityColour { ^FxPalette.gain }
+
 	// ----------------------------------------------------------- the curve
 
 	// The gain the computer applies to a level, in dB, before the
@@ -540,7 +546,9 @@ Compressor : FxUnit {
 		^(threshold: threshold, ratio: ratio, knee: knee, attack: attack, release: release,
 			lookahead: lookahead, range: range, mix: mix, gain: gain, autoGain: autoGain,
 			mode: mode, detector: detector, link: link,
-			eq: (enabled: eqOn, bands: eqBands ?? { ParaEQ.defaultBands }))
+			// the cuts out, as ParaEQ has them now: a preset says the whole eq, and
+			// a compressor fresh from new reads as `default`, not as custom
+			eq: (enabled: eqOn, bands: eqBands ?? { ParaEQ.defaultBands }, cuts: ParaEQ.new.asDict[\cuts]))
 	}
 
 	*prBuiltinPresets {
