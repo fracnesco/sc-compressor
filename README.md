@@ -4,6 +4,8 @@
 and an eq on the sidechain — that runs anywhere a UGen does, driven by an object
 with a window.** A SuperCollider extension.
 
+![Compressor's window](images/compressor.png)
+
 Write `Compressor.ar` into a graph of your own and drive it from an object: a
 window with the last eight seconds of level and gain change beside the transfer
 curve, both on the meters' dB scale, the threshold one line you drag through
@@ -250,6 +252,7 @@ the Ndef. The meter replies only flow while a window is open.
 | [examples/compressor-demo.scd](examples/compressor-demo.scd) | a walkthrough you can evaluate a block at a time |
 | [install.scd](install.scd) | symlinks ParaEQ and this repository into the extensions folder |
 | [sc-compressor.quark](sc-compressor.quark) | the quark manifest, with `sc-eq` as its dependency |
+| [images/](images/) | the screenshots in this README |
 
 ## Issues
 
