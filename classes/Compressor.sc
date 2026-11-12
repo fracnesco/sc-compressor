@@ -248,19 +248,11 @@ Compressor : FxUnit {
 		mode = \down; detector = \peak; link = 1; audition = false;
 		idCounter = idCounter + 1;
 		id = idCounter;
-		eq = ParaEQ(nil, Compressor.prSub(this.class.controlName, "Eq"));
+		// the control name is settable per instance, and the eq's follows it:
+		// init has set it by now, so target_ reads the node under the right name
+		eq = ParaEQ(nil, Compressor.prSub(controlName ? this.class.controlName, "Eq"));
 		eq.label = "sidechain eq";
 		eq.action = { |e, what| this.prPushEq; this.prChanged(\eq) };
-	}
-
-	// the control name is settable per instance, and the eq's follows it
-	init { |argTarget, argControlName|
-		super.init(argTarget, argControlName);
-		eq = ParaEQ(nil, Compressor.prSub(controlName, "Eq"));
-		eq.label = "sidechain eq";
-		eq.action = { |e, what| this.prPushEq; this.prChanged(\eq) };
-		this.prPushAll;
-		^this
 	}
 
 	threshold_ { |db| threshold = specs[\threshold].constrain(db); this.prSet(\threshold) }
@@ -458,10 +450,70 @@ Compressor : FxUnit {
 		if (meterOn) { this.prListen };
 	}
 
+	// A node that already carries a sidechain eq (an Ndef's nodeMap) keeps
+	// it: what it has of the eq is read back first - the bands, the cuts and
+	// their slopes, the switch, each on its own - and the whole eq pushed when
+	// something was missing, so the node and the window end on the same eq.
+	// Told once, after the target is set, so a window that asks back sees the
+	// new node; the switch too goes in after it.
 	target_ { |node|
+		var adopted = eq !? { this.prAdoptEq(node) };	// [\whole or \partial, switch or nil]
 		super.target_(node);
-		eq !? { this.prPushEq; this.prPushMeta };
+		eq !? {
+			adopted !? {
+				// enabled_ calls the eq's action (a push and \eq on this one):
+				// held off. It says \enabled itself, only when the switch moves
+				adopted[1] !? { |on|
+					var act = eq.action;
+					eq.action = nil;
+					eq.enabled_(on);
+					eq.action = act;
+				};
+			};
+			// an adopted switch is pushed back too: super.target_ may have
+			// pushed the old one (a node without the compressor's own controls)
+			if (adopted.isNil or: { adopted[0] != \whole } or: { adopted[1].notNil }) { this.prPushEq };
+			this.prPushMeta;
+			if (adopted.notNil) { eq.changed(\settings); this.changed(\eq) };
+		};
 		if (meterOn) { this.prListen };
+	}
+
+	// the eq's bands, cuts and slopes off the node, quietly (no action, no
+	// notification), each part read whether or not the others are there, as
+	// ParaEQ:target_ reads the cuts. Answers nil when the node carries none of
+	// it, else [\whole or \partial, the switch]: \partial when a part was
+	// missing and the model kept its own; the switch (a Boolean, nil when the
+	// node has none) is for target_ to set once the target is in.
+	prAdoptEq { |node|
+		var map, held, slopes, on, any = false, whole = true;
+		map = node !? { node.tryPerform(\nodeMap) };
+		if (map.isNil) { ^nil };
+		held = map.tryPerform(\at, eq.controlName);
+		held = held !? { |h| h.value.asArray };
+		if (held.notNil and: { held.size == (ParaEQ.numBands * 3) }) {
+			eq.prAcceptControls(held);
+			any = true;
+		} { whole = false };
+		held = map.tryPerform(\at, eq.cutName);
+		held = held !? { |h| h.value.asArray };
+		if (held.notNil and: { held.size == (ParaEQ.numCuts * 3) }) {
+			slopes = map.tryPerform(\at, eq.slopeName);
+			slopes = slopes !? { |h| h.value.asArray };
+			if (slopes.isNil or: { slopes.size != ParaEQ.numCuts }) { slopes = nil; whole = false };
+			// prSetCut, not cuts_: that one pushes and notifies \bands
+			held.clump(3).do { |c, j|
+				eq.prSetCut(j, c[0], c[1], c[2] > 0.5, slopes !? { slopes[j] })
+			};
+			any = true;
+		} { whole = false };
+		held = map.tryPerform(\at, eq.onName);
+		if (held.notNil) {
+			on = held.value.asArray.first > 0.5;
+			any = true;
+		} { whole = false };
+		if (any.not) { ^nil };
+		^[if (whole) { \whole } { \partial }, on]
 	}
 
 	// --------------------------------------------------------------- meters
@@ -497,7 +549,7 @@ Compressor : FxUnit {
 			reductionMax = msg[7] ? 0;
 			lastReply = Main.elapsedTime;
 			this.changed(\levels);
-		}, replyName, srv.addr, argTemplate: [nil, id]);
+		}, replyName, srv.addr, argTemplate: [nil, id]).fix;	// cmd + period does not take it
 	}
 
 	prUnlisten {
