@@ -260,7 +260,11 @@ Compressor : FxUnit {
 	knee_ { |db| knee = specs[\knee].constrain(db); this.prSet(\knee) }
 	attack_ { |secs| attack = specs[\attack].constrain(secs); this.prSet(\attack) }
 	release_ { |secs| release = specs[\release].constrain(secs); this.prSet(\release) }
-	lookahead_ { |secs| lookahead = specs[\lookahead].constrain(secs); this.prSet(\lookahead) }
+	lookahead_ { |secs|
+		lookahead = specs[\lookahead].constrain(secs);
+		this.prSet(\lookahead);
+		this.changed(\latency);
+	}
 	range_ { |db| range = specs[\range].constrain(db); this.prSet(\range) }
 	mix_ { |amount| mix = specs[\mix].constrain(amount); this.prSet(\mix) }
 	gain_ { |db| gain = specs[\gain].constrain(db); this.prSet(\gain) }
@@ -297,6 +301,45 @@ Compressor : FxUnit {
 	set { |key, value| ^this.perform(key.asSymbol.asSetter, value) }
 
 	get { |key| ^this.perform(key.asSymbol) }
+
+	// FxUnit's *mapParams: the thirteen of paramNames. The two menus are the
+	// index of their item, auto gain 0 or 1.
+	*prMapParams {
+		var labels = (threshold: "thresh", lookahead: "lookahead", autoGain: "auto gain", gain: "makeup");
+		var heroes = #[\threshold, \ratio, \mix, \gain];
+		^paramNames.collect { |key|
+			var kind = \knob, items, spec = specs[key];
+			switch (key,
+				\mode, { kind = \menu; items = modes; spec = ControlSpec(0, 1, \lin, 1, 0) },
+				\detector, { kind = \menu; items = detectors; spec = ControlSpec(0, 1, \lin, 1, 0) },
+				\autoGain, { kind = \toggle; spec = ControlSpec(0, 1, \lin, 1, 0) }
+			);
+			(key: key, label: labels[key] ? key.asString, kind: kind, spec: spec, items: items,
+				section: \main, box: if (#[\mix, \link].includes(key)) { \pct },
+				hero: heroes.includes(key))
+		}
+	}
+
+	mapGet { |key|
+		key = key.asSymbol;
+		if (paramNames.includes(key).not) { ^nil };
+		^switch (key,
+			\mode, { modes.indexOf(mode) },
+			\detector, { detectors.indexOf(detector) },
+			\autoGain, { autoGain.binaryValue },
+			{ this.perform(key) }
+		)
+	}
+
+	mapSet { |key, value|
+		key = key.asSymbol;
+		if (paramNames.includes(key).not) { ^this };
+		if (key == \autoGain) { value = value > 0.5 };
+		this.perform(key.asSetter, value);
+	}
+
+	// the lookahead is the only thing that makes it late
+	latency { ^lookahead }
 
 	prSet { |what|
 		this.prPush;
