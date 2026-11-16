@@ -338,8 +338,13 @@ Compressor : FxUnit {
 		this.perform(key.asSetter, value);
 	}
 
-	// the lookahead is the only thing that makes it late
-	latency { ^lookahead }
+	// The lookahead is what makes it late - and never less than one sample:
+	// the delay line is always in the graph, and measured against the input
+	// (an impulse, offline) the output is one sample behind with it at 0.
+	latency {
+		var srv = server ? Server.default;
+		^max(lookahead, 1 / (srv.sampleRate ? srv.options.sampleRate ? 48000))
+	}
 
 	prSet { |what|
 		this.prPush;
