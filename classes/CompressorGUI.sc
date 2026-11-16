@@ -220,6 +220,8 @@ CompressorPanel {
 		var k = FxKnob(label, spec, size, bipolar, colour);
 		k.default = spec.default;
 		k.action = { |kn| comp !? { |c| c.set(key, kn.mapped) } };
+		k.mapUnitFunc = { comp };
+		k.mapKey = key;
 		knobs[key] = k;
 		^k
 	}
@@ -249,7 +251,8 @@ CompressorPanel {
 
 		// dynamics: the curve, in orchid, then time
 		modeSwitch = FxSwitch(["down", "up"], false, nil, "mode")
-			.action_({ |s| comp !? (_.mode_(Compressor.modes[s.value])) });
+			.action_({ |s| comp !? (_.mode_(Compressor.modes[s.value])) })
+			.mapUnitFunc_({ comp }).mapKey_(\mode);
 		this.prKnob(\threshold, "threshold", \big, gain).dec_(1)
 			.hint_("the level the curve bends at - the ring is the detector now, orchid when over it");
 		this.prKnob(\ratio, "ratio", \big, gain)
@@ -262,7 +265,8 @@ CompressorPanel {
 		curveCard = this.prCard("curve", [modeSwitch, knobs[\threshold], knobs[\ratio], knobs[\knee], knobs[\range]], gain);
 
 		detSwitch = FxSwitch(["peak", "rms"], false, nil, "detector")
-			.action_({ |s| comp !? (_.detector_(Compressor.detectors[s.value])) });
+			.action_({ |s| comp !? (_.detector_(Compressor.detectors[s.value])) })
+			.mapUnitFunc_({ comp }).mapKey_(\detector);
 		this.prKnob(\attack, "attack", \medium)
 			.hint_("how quickly the gain moves away from 0 dB as the sound gets louder - a time constant");
 		this.prKnob(\release, "release", \medium)
@@ -274,7 +278,8 @@ CompressorPanel {
 		// the output, on every page
 		this.prKnob(\gain, "makeup", \medium, nil, true).dec_(1)
 			.hint_("gain after the compression, before the mix");
-		autoSwitch = FxSwitch(["auto"], true).action_({ |s| comp !? (_.autoGain_(s.value)) });
+		autoSwitch = FxSwitch(["auto"], true).action_({ |s| comp !? (_.autoGain_(s.value)) })
+			.mapUnitFunc_({ comp }).mapKey_(\autoGain);
 		this.prKnob(\mix, "mix", \medium).box_(\pct)
 			.hint_("how much of the compressed sound goes out - less is parallel compression");
 		outCard = this.prCard("output", [knobs[\gain], this.prLow(autoSwitch), knobs[\mix]]);
