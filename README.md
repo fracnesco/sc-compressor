@@ -22,11 +22,12 @@ c.threshold = -24; c.ratio = 4; c.attack = 0.005; c.release = 0.12;
 c.preset = \glue;
 ```
 
-It is built on [ParaEQ](../sc%20EQ) — it is one of that repository's effects,
-its sidechain eq is a `ParaEQ`, and its window is made of that repository's
-pieces — so ParaEQ has to be installed too; the installer links it for you when
-the two folders sit side by side. [BusManager](../sc%20bus%20manager) is optional
-and lets the sidechain be a bus by name.
+It is built on [FxKit](https://github.com/fracnesco/sc-fx-kit), like every
+effect of mine: an `FxUnit`, in a window made of FxKit's pieces. Its sidechain eq
+is a [ParaEQ](https://github.com/fracnesco/sc-eq), so that has to be installed
+too; the installer links both for you when the folders sit side by side.
+[BusManager](https://github.com/fracnesco/sc-bus-manager) is optional and lets
+the sidechain be a bus by name.
 
 Written for SuperCollider 3.13 on macOS. Nothing in it is platform specific
 apart from the symlink in `install.scd`, which Linux shares and Windows does not.
@@ -40,22 +41,24 @@ Quarks.install("https://github.com/fracnesco/sc-compressor.git");
 thisProcess.recompile;
 ```
 
-The manifest names `sc-eq` as a dependency, so `Quarks` fetches that first. The
+The manifest names `sc-eq` as a dependency, which names `sc-fx-kit`, so
+`Quarks` fetches those first. The
 quark goes by the name of the repository, `sc-compressor`; the class inside it
 is `Compressor`.
 
 ### From a clone
 
 ```sh
-git clone https://github.com/fracnesco/sc-eq.git
-git clone https://github.com/fracnesco/sc-compressor.git
+git clone https://github.com/fracnesco/sc-fx-kit.git "sc fx kit"
+git clone https://github.com/fracnesco/sc-eq.git "sc EQ"
+git clone https://github.com/fracnesco/sc-compressor.git "sc compressor"
 ```
 
 Open `install.scd` and evaluate it, then recompile the class library. It
-symlinks `../sc EQ` as `ParaEQ` if that is not installed yet, then this folder
-as `Compressor`, and tells you what it did.
+symlinks `../sc fx kit` as `FxKit` and `../sc EQ` as `ParaEQ` if they are not
+installed yet, then this folder as `Compressor`, and tells you what it did.
 
-On Windows there is no `ln -s`, so use the quark, or copy both folders into the
+On Windows there is no `ln -s`, so use the quark, or copy the three folders into the
 extensions folder by hand — `Platform.userExtensionDir.openOS` opens it.
 
 Install it one way or the other, **not both**: two copies on the class path is a
@@ -126,7 +129,7 @@ c.sidechain = 16;                // a bus index, a Bus, or a BusManager name
 c.sidechain = \kick;             // followed when the bus behind the name moves
 c.free;
 
-FxChain.master.compressor;       // the one after the master eq - see ParaEQ
+FxChain.master.compressor;       // the one after the master eq - see FxChain
 ```
 
 An external sidechain is read with `InFeedback`, so a bus written later in the
@@ -247,10 +250,10 @@ the Ndef. The meter replies only flow while a window is open.
 |------|---------------|
 | [classes/Compressor.sc](classes/Compressor.sc) | the DSP as a UGen, the object, the static curve in numbers, presets, clipboard, sidechain, meters |
 | [classes/CompressorView.sc](classes/CompressorView.sc) | the display: `CompressorHistoryView` (and its test kick), `CompressorCurveView`, `CompressorMeterView` (FxMeter with the gain bar), `CompressorSidechainSource` (where the sidechain page's spectrum reads) |
-| [classes/CompressorGUI.sc](classes/CompressorGUI.sc) | `CompressorPanel`, the controls as one view, and `CompressorGUI`, the window (ParaEQ's `FxDeviceGUI`) |
+| [classes/CompressorGUI.sc](classes/CompressorGUI.sc) | `CompressorPanel`, the controls as one view, and `CompressorGUI`, the window (FxKit's `FxDeviceGUI`) |
 | [HelpSource/Classes/](HelpSource/Classes/) | the help files, cmd/ctrl + d on a class name |
 | [examples/compressor-demo.scd](examples/compressor-demo.scd) | a walkthrough you can evaluate a block at a time |
-| [install.scd](install.scd) | symlinks ParaEQ and this repository into the extensions folder |
+| [install.scd](install.scd) | symlinks FxKit, ParaEQ and this repository into the extensions folder |
 | [sc-compressor.quark](sc-compressor.quark) | the quark manifest, with `sc-eq` as its dependency |
 | [images/](images/) | the screenshots in this README |
 
