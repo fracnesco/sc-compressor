@@ -302,6 +302,9 @@ Compressor : FxUnit {
 
 	get { |key| ^this.perform(key.asSymbol) }
 
+	// what a card in a strip shows (FxDeviceCard)
+	*cardKeys { ^#[\threshold, \ratio, \attack, \release, \gain] }
+
 	// FxUnit's *mapParams: the thirteen of paramNames. The two menus are the
 	// index of their item, auto gain 0 or 1.
 	*prMapParams {
