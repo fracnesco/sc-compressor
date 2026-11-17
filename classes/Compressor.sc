@@ -153,7 +153,11 @@ Compressor : FxUnit {
 		grS = LagUD.ar(gr, p[4] * k, p[3] * k);
 
 		// the signal waits for the detector, up to maxLookahead
-		delayed = DelayN.ar(sig, maxLookahead, Lag.kr(p[5], 0.05).clip(0, maxLookahead));
+		// a whole number of samples, and the half on top makes DelayN (which
+		// drops the fraction) land on it whatever the rounding: `latency`
+		// counts the same way, so a rack can line a dry chain up to the sample
+		delayed = DelayN.ar(sig, maxLookahead + 0.001,
+			((Lag.kr(p[5], 0.05).clip(0, maxLookahead) * SampleRate.ir).round + 0.5) * SampleDur.ir);
 		wet = delayed * (grS + p[8]).dbamp;
 		out = (delayed * (1 - p[7])) + (wet * p[7]);
 		// hear what the detector hears instead, to aim the sidechain eq
@@ -346,7 +350,10 @@ Compressor : FxUnit {
 	// (an impulse, offline) the output is one sample behind with it at 0.
 	latency {
 		var srv = server ? Server.default;
-		^max(lookahead, 1 / (srv.sampleRate ? srv.options.sampleRate ? 48000))
+		var sr = srv.sampleRate ? srv.options.sampleRate ? 48000;
+		// in the server's single precision, as the delay line works it out
+		var samples = FloatArray[FloatArray[lookahead][0] * sr][0].round;
+		^max(samples, 1) / sr
 	}
 
 	prSet { |what|
