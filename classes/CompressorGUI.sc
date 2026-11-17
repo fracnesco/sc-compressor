@@ -120,7 +120,7 @@ CompressorPanel {
 	comp_ { |c|
 		ctrl !? (_.remove);
 		ctrl = nil;
-		if (running) { comp !? { |old| old.meter = false } };
+		if (running) { comp !? { |old| old.meterFor(this, false) } };
 		comp = c;
 		header.unit = c;
 		curveView.comp = c;
@@ -140,7 +140,7 @@ CompressorPanel {
 				.put(\audition, { { this.refresh }.defer })
 				.put(\freed, { { this.comp_(nil) }.defer });
 			Compressor.paramNames.do { |key| ctrl.put(key, { { this.refresh }.defer }) };
-			if (running) { c.meter = true };
+			if (running) { c.meterFor(this, true) };
 		};
 		this.refresh;
 	}
@@ -149,7 +149,7 @@ CompressorPanel {
 	// while the panel is on screen
 	running_ { |bool|
 		running = bool == true;
-		comp !? { comp.meter = running };
+		comp !? { comp.meterFor(this, running) };
 		spectrum.running = running and: { this.page == 1 };
 		this.prWatch;
 	}
@@ -184,7 +184,7 @@ CompressorPanel {
 		watcher = nil;
 		historyView.remove;
 		spectrum !? (_.free);
-		comp !? { comp.meter = false };
+		comp !? { comp.meterFor(this, false) };
 		running = false;
 	}
 

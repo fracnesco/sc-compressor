@@ -214,7 +214,7 @@ METHOD:: staticGain
 The curve with this compressor's settings.
 
 METHOD:: meter
-Whether the node reports levels. A window turns it on while open.
+Whether the node reports levels: on while anyone asks (link::Classes/FxUnit#-meterFor::), a window while open.
 
 METHOD:: inLevel
 METHOD:: outLevel

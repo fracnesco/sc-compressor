@@ -576,9 +576,10 @@ Compressor : FxUnit {
 
 	// --------------------------------------------------------------- meters
 
-	// Whether the node reports levels. A window turns this on while it is
-	// open; from code, `meter = true` and read the levels below.
-	meter_ { |bool|
+	// Whether the node reports levels: on while anyone asks (FxUnit's
+	// meterFor) - a window while it is open; from code, `meter = true` and
+	// read the levels below.
+	prMeterSwitch { |bool|
 		bool = bool == true;
 		if (bool == meterOn) { ^this };
 		meterOn = bool;
