@@ -443,16 +443,24 @@ Compressor : FxUnit {
 			external.binaryValue, link]
 	}
 
+	// A node's fourteen numbers taken over, each kept in its spec's range
+	// (not rounded to its step: what the node runs is kept). Slot 8 is the
+	// makeup the node runs - gain plus what auto gain adds - and auto gain
+	// itself is not on the node: it stays as this object has it, and gain is
+	// what is left, so the makeup heard is the same and auto gain is not
+	// added twice.
 	prAcceptControls { |array|
-		var a = array.asArray;
+		var a = array.asArray, c = { |key, v| v.clip(specs[key].clipLo, specs[key].clipHi) };
 		if (a.size != 14) { ^false };
-		threshold = a[0]; ratio = a[1]; knee = a[2]; attack = a[3]; release = a[4];
-		lookahead = a[5]; range = a[6]; mix = a[7]; gain = a[8];
+		threshold = c.(\threshold, a[0]); ratio = c.(\ratio, a[1]); knee = c.(\knee, a[2]);
+		attack = c.(\attack, a[3]); release = c.(\release, a[4]);
+		lookahead = c.(\lookahead, a[5]); range = c.(\range, a[6]); mix = c.(\mix, a[7]);
 		mode = modes[a[9].round.asInteger.clip(0, 1)];
 		audition = a[10] > 0.5;
 		detector = detectors[a[11].round.asInteger.clip(0, 1)];
 		external = a[12] > 0.5;
-		link = a[13];
+		link = c.(\link, a[13]);
+		gain = c.(\gain, a[8] - this.autoGainDb);
 		^true
 	}
 
